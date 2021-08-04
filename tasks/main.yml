@@ -1,0 +1,39 @@
+---
+# tasks file for ansible-docker-rocketchat
+
+- name: "Configurer le parefeu (ufw)"
+  include: configurer_parefeu.yml
+
+- name: "Ajouter l'utilisateur Unix qui exécutera docker/docker-compose"
+  user:
+    name: "{{ utilisateur_unix }}"
+    groups: docker
+    append: yes
+  become: yes
+
+- name: "Configurer le fichier .yml du projet Docker Compose"
+  template:
+    src: "docker-compose.yml.j2"
+    dest: "/home/{{ utilisateur_unix }}/docker-compose.yml"
+    owner: "{{ utilisateur_unix }}"
+    group: "{{ utilisateur_unix }}"
+    mode: 0644
+  become: yes
+   
+- name: "Configurer le fichier .env du projet Docker Compose "
+  template:
+    src: "env.j2"
+    dest: "/home/{{ utilisateur_unix }}/.env"
+    owner: "{{ utilisateur_unix }}"
+    group: "{{ utilisateur_unix }}"
+    mode: 0644
+  become: yes
+
+# À FAIRE : convertir en handler / redémarrer uniquement si .env a changé
+- name: "(Re)démarrer les services via docker-compose"
+  docker_compose:
+    project_src: "/home/{{ utilisateur_unix }}/"
+    state: present
+    restarted: yes
+  become: yes
+  become_user: "{{ utilisateur_unix }}"

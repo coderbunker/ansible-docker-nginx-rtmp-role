@@ -1,0 +1,8 @@
+---
+# defaults file for ansible-docker-nginx-rtmp
+utilisateur_unix: "diffusion"
+
+# Variables du fichier .env du projet docker-compose
+port_rtmp_ext: 1935
+port_rtmp_int: 1935
+
