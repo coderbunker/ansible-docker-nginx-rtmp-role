@@ -1,7 +1,7 @@
 nginx-rtmp Docker
 =========
 
-Ce rôle sert à déployer/remettre en état un serveur nginx-rtmp via Docker Compose. L'image utilisée est celle-ci : https://hub.docker.com/r/tiangolo/nginx-rtmp/
+Ce rôle sert à déployer/remettre en état un serveur nginx-rtmp via Docker Compose. L'image utilisée est celle-ci : https://hub.docker.com/r/alqutami/rtmp-hls
 
 Requirements
 ------------

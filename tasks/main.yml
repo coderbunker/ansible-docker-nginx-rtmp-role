@@ -1,5 +1,5 @@
 ---
-# tasks file for ansible-docker-rocketchat
+# tasks file for ansible-docker-nginx-rtmp-role
 
 - name: "Configurer le parefeu (ufw)"
   include: configurer_parefeu.yml
@@ -9,24 +9,42 @@
     name: "{{ utilisateur_unix }}"
     groups: docker
     append: yes
+    shell: /bin/bash
+  become: yes
+  
+- name: "Ajouter les répertoires de configuration nécessaires à nginx-rtmp" 
+  file:
+    path: "{{ item }}"
+    state: directory
+  loop: "{{ repertoires_config }}"
+  become: yes
+  become_user: "{{ utilisateur_unix }}"
+
+- name: "Copier tous les fichiers de config. de nginx-rtmp"
+  template:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    owner: "{{ item.owner }}"
+    group: "{{ utilisateur_unix }}"
+    mode: "{{ item.mode }}"
+  loop:
+    - { src: "docker-compose.yml.j2", dest: "/home/{{ utilisateur_unix }}/docker-compose.yml", owner: "{{ utilisateur_unix }}", mode: "0644" }
+    - { src: "env.j2", dest: "/home/{{ utilisateur_unix }}/.env", owner: "{{ utilisateur_unix }}", mode: "0644" }
+    - { src: "vhost.j2", dest: "/home/{{ utilisateur_unix }}/docker-compose/nginx/nginx.conf", owner: "{{ utilisateur_unix }}", mode: "0644" }
+    - { src: "init-letsencrypt.sh.j2", dest: "/home/{{ utilisateur_unix }}/init-letsencrypt.sh", owner: "root", mode: "0755" }
   become: yes
 
-- name: "Configurer le fichier .yml du projet Docker Compose"
-  template:
-    src: "docker-compose.yml.j2"
-    dest: "/home/{{ utilisateur_unix }}/docker-compose.yml"
-    owner: "{{ utilisateur_unix }}"
-    group: "{{ utilisateur_unix }}"
-    mode: 0644
+- name: "Déterminer si le certificat SSL existe déjà"
+  stat:
+    path: "/home/{{ utilisateur_unix }}/docker-compose/certbot/conf/live/{{ aquarium_direct_domaine }}/fullchain.pem"
+  register: ssl
   become: yes
-   
-- name: "Configurer le fichier .env du projet Docker Compose "
-  template:
-    src: "env.j2"
-    dest: "/home/{{ utilisateur_unix }}/.env"
-    owner: "{{ utilisateur_unix }}"
-    group: "{{ utilisateur_unix }}"
-    mode: 0644
+ 
+- name: "Générer le certificat SSL si nécessaire"
+  command: ./init-letsencrypt.sh
+  args:
+    chdir: /home/{{ utilisateur_unix }}
+  when: not ssl.stat.exists
   become: yes
 
 # À FAIRE : convertir en handler / redémarrer uniquement si .env a changé

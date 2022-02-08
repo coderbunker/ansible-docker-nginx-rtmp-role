@@ -2,8 +2,22 @@ version: "3.7"
 
 services:
   nginx-rtmp:
-    image: tiangolo/nginx-rtmp
+    image: alqutami/rtmp-hls
     container_name: nginx-rtmp
     restart: unless-stopped
     ports:
       - ${RTMP_PORT_EXT}:${RTMP_PORT_INT}
+      - ${HTTP_PORT_EXT}:${HTTP_PORT_INT}
+      - ${HTTPS_PORT_EXT}:${HTTPS_PORT_INT}
+    volumes:
+      - ./docker-compose/nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./docker-compose/certbot/conf:/etc/letsencrypt
+      - ./docker-compose/certbot/www:/var/www/certbot
+    command: "/bin/sh -c 'while :; do sleep 6h & wait $${!}; nginx -s reload; done & nginx -g \"daemon off;\"'"
+
+  certbot:
+    image: certbot/certbot
+    volumes:
+      - ./docker-compose/certbot/conf:/etc/letsencrypt
+      - ./docker-compose/certbot/www:/var/www/certbot
+    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"

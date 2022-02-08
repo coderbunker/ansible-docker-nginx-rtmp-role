@@ -1,8 +1,16 @@
 ---
 # defaults file for ansible-docker-nginx-rtmp
-utilisateur_unix: "diffusion"
+utilisateur_unix: "diffuseur"
+aquarium_direct_domaine: undomaine.org
+letsencrypt_courriel: nom@undomaine.org
+letsencrypt_staging: 0
+
+repertoires_config: "['~/docker-compose', '~/docker-compose/nginx', '~/docker-compose/certbot']"
 
 # Variables du fichier .env du projet docker-compose
 port_rtmp_ext: 1935
 port_rtmp_int: 1935
-
+port_http_ext: 80
+port_http_int: 80
+port_https_ext: 443
+port_https_int: 443
